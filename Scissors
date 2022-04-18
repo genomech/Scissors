@@ -1,0 +1,53 @@
+#!/bin/python3
+
+__author__ = "regnveig"
+__version__ = "0.31b"
+__date__ = "2021 Mar 12"
+
+from src.SharedFunctions import *
+from src.Initialization import *
+from src.DaemonicPipe import *
+from src.AnnoFit import *
+
+CurrentDir = os.path.dirname(sys.argv[0])
+
+def CreateParser():
+	Parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=f"Scissors: Pipeline for Exome Sequence Analysis", epilog=f"Email: regnveig@ya.ru")
+	Parser.add_argument('--version', action='version', version=__version__)
+	Subparsers = Parser.add_subparsers(title='Commands', dest='command')
+	
+	# DaemonicPipe
+	DaemonicPipeParser = Subparsers.add_parser('DaemonicPipe', help=f"Aligning, Removing Duplicates, Recalibration & Variant Calling")
+	DaemonicPipeParser.add_argument('-c', '--config', default=os.path.join(CurrentDir, "config/DaemonicPipeline_config.json"), help=f"Pipeline Config File (default: config/DaemonicPipeline_config.json)")
+	DaemonicPipeParser.add_argument('-u', '--units', required=True, help=f"Units File in JSON format")
+	DaemonicPipeParser.add_argument('-n', '--nocall', action='store_true', help=f"Don't call variants, only BAM stats")
+	
+	# AnnoPipe
+	AnnoPipeParser = Subparsers.add_parser('AnnoPipe', help=f"Annotation & Filtering Variants")
+	AnnoPipeParser.add_argument('-c', '--config', default=os.path.join(CurrentDir, "config/DaemonicPipeline_config.json"), help=f"Pipeline Config File (default: config/DaemonicPipeline_config.json)")
+	AnnoPipeParser.add_argument('-u', '--units', required=True, help=f"Units File in JSON format")
+	AnnoPipeParser.add_argument('-n', '--nofilter', action='store_true', help=f"Don't filter variants")
+	
+	# PrepareReference
+	PrepareReferenceParser = Subparsers.add_parser('PrepareReference', help=f"Prepare reference sequence for Scissors")
+	PrepareReferenceParser.add_argument('-c', '--config', default=os.path.join(CurrentDir, "config/DaemonicPipeline_config.json"), help=f"Pipeline Config File (default: config/DaemonicPipeline_config.json)")
+	PrepareReferenceParser.add_argument('-r', '--reference', required=True, help=f"Reference sequence file in FASTA format")
+	
+	# PrimaryFastqAnalysis
+	PrimaryFastqAnalysisParser = Subparsers.add_parser('PrimaryFastqAnalysis', help=f"Pool Primary FastQ Analysis by FastQC")
+	PrimaryFastqAnalysisParser.add_argument('-c', '--config', default=os.path.join(CurrentDir, "config/DaemonicPipeline_config.json"), help=f"Pipeline Config File (default: config/DaemonicPipeline_config.json)")
+	PrimaryFastqAnalysisParser.add_argument('-u', '--units', required=True, help=f"Units File in JSON format")
+	
+	return Parser
+
+if __name__ == '__main__':
+	
+	Parser = CreateParser()
+	Namespace = Parser.parse_args(sys.argv[1:])
+	
+	if Namespace.command == "DaemonicPipe": DaemonicPipe(Namespace.config, Namespace.units, Namespace.nocall)
+	elif Namespace.command == "AnnoPipe": AnnoPipe(Namespace.config, Namespace.units, "no" if Namespace.nofilter else "full")
+	elif Namespace.command == "PrepareReference": PrepareReference(Namespace.reference, Namespace.config)
+	elif Namespace.command == "PrimaryFastqAnalysis": PrimaryFastqAnalysis(Namespace.config, Namespace.units)
+		
+	else: Parser.print_help()
