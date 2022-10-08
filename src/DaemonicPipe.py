@@ -212,10 +212,10 @@ def BaseRecalibration(
 	
 	# Processing
 	with tempfile.TemporaryDirectory() as TempDir:
-		
+		BaseDir = os.path.dirname(InputBAM)
 		SimpleSubprocess(
 			Name = f"{MODULE_NAME}.PreIndex",
-			Command = f"gatk BuildBamIndex -I \"{InputBAM}\"",
+			Command = f"cd \"{BaseDir}\"; gatk BuildBamIndex -I \"{InputBAM}\"",
 			Logger = Logger,
 			Env = Env)
 		with Threading("ContigBaseRecalibration", Logger, Threads) as pool:
@@ -235,7 +235,7 @@ def BaseRecalibration(
 			Env = Env)
 		SimpleSubprocess(
 			Name = f"{MODULE_NAME}.PostIndex",
-			Command = f"gatk BuildBamIndex -I \"{OutputBAM}\"",
+			Command = f"cd \"{BaseDir}\"; gatk BuildBamIndex -I \"{OutputBAM}\"",
 			Logger = Logger,
 			Env = Env)
 
