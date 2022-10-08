@@ -233,9 +233,10 @@ def BaseRecalibration(
 			Command = f"gatk MergeSamFiles --USE_THREADING true -SO coordinate {MultipleTags(Tag='-I', List=Shards)} -O \"{OutputBAM}\"",
 			Logger = Logger,
 			Env = Env)
+		BaseDir2 = os.path.dirname(OutputBAM)
 		SimpleSubprocess(
 			Name = f"{MODULE_NAME}.PostIndex",
-			Command = f"cd \"{BaseDir}\"; gatk BuildBamIndex -I \"{OutputBAM}\"",
+			Command = f"cd \"{BaseDir2}\"; gatk BuildBamIndex -I \"{OutputBAM}\"",
 			Logger = Logger,
 			Env = Env)
 
